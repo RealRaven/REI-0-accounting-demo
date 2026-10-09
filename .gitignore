@@ -1,0 +1,181 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# ========================
+# IDE / Editors
+# ========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+.spyderproject
+.spyproject
+.ropeproject
+.claude/
+.cursor/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ========================
+# Project specific
+# ========================
+
+# Screenshots & recordings from the agent
+screenshots/
+recordings/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.webm
+!docs/**/*.png
+!docs/**/*.jpg
+!ui/**/assets/**
+
+# Local model weights / caches (can be huge)
+models/
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.onnx
+.cache/
+huggingface/
+~/.cache/huggingface/
+
+# vLLM / Torch related
+*.log
+logs/
+wandb/
+mlruns/
+.tensorboard/
+
+# Configs with secrets or local paths
+config/local.yaml
+config/secrets.yaml
+*.local.yaml
+.env.local
+.env.*.local
+
+# Demo data / client data (never commit real client data!)
+demos/real/
+data/clients/
+data/invoices/
+*.pdf
+!demos/sample/**/*.pdf
+
+# PyAutoGUI / automation temp
+pyautogui_failsafe/
+.temp/
+
+# ========================
+# Frontend / UI
+# ========================
+ui/node_modules/
+ui/dist/
+ui/build/
+ui/.next/
+ui/.nuxt/
+ui/.output/
+ui/coverage/
+ui/.turbo/
+*.tsbuildinfo
+.npm
+.yarn/
+.pnpm-store/
+
+# Streamlit / Gradio
+.streamlit/
+.gradio/
+
+# ========================
+# Testing & Coverage
+# ========================
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+coverage.xml
+*.cover
+.hypothesis/
+.cache/
+
+# ========================
+# Jupyter
+# ========================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ========================
+# Misc
+# ========================
+*.bak
+*.tmp
+*.temp
+*.orig
+.fleet/
+.history/
+.direnv/
+.pre-commit-config.yaml.bak
+
+export_tree.py
+project_tree.txt
