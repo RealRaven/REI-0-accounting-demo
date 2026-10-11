@@ -1,0 +1,14 @@
+[
+  {"doc_id":"inv-001","vendor":"JetBrains","invoice_date":"2024-07-04","amount_net":574.00,"vat_rate":19,"vat_amount":109.06,"amount_gross":683.06,"category":"software"},
+  {"doc_id":"inv-002","vendor":"Figma","invoice_date":"2024-08-11","amount_net":393.28,"vat_rate":19,"vat_amount":74.72,"amount_gross":468.00,"category":"software"},
+  {"doc_id":"inv-003","vendor":"Figma","invoice_date":"2024-09-14","amount_net":66.39,"vat_rate":19,"vat_amount":12.61,"amount_gross":79.00,"category":"software"},
+  {"doc_id":"inv-004","vendor":"Contabo","invoice_date":"2024-07-01","amount_net":21.00,"vat_rate":19,"vat_amount":3.99,"amount_gross":24.99,"category":"hosting"},
+  {"doc_id":"inv-005","vendor":"Deutsche Bahn","invoice_date":"2024-09-02","amount_net":110.08,"vat_rate":19,"vat_amount":20.92,"amount_gross":131.00,"category":"travel"},
+  {"doc_id":"inv-006","vendor":"Office Depot","invoice_date":"2024-08-20","amount_net":252.10,"vat_rate":19,"vat_amount":47.90,"amount_gross":300.00,"category":"office"},
+  {"doc_id":"inv-007","vendor":"Stadtwerke München","invoice_date":"2024-08-05","amount_net":160.00,"vat_rate":19,"vat_amount":30.40,"amount_gross":190.40,"category":"utilities"},
+  {"doc_id":"inv-008","vendor":"Amazon Web Services","invoice_date":"2024-09-01","amount_net":420.17,"vat_rate":19,"vat_amount":79.83,"amount_gross":500.00,"category":"hosting"},
+  {"doc_id":"inv-009","vendor":"Hetzner","invoice_date":"2024-09-01","amount_net":42.02,"vat_rate":19,"vat_amount":7.98,"amount_gross":50.00,"category":"hosting"},
+  {"doc_id":"inv-010","vendor":"IKEA","invoice_date":"2024-07-15","amount_net":252.10,"vat_rate":19,"vat_amount":47.90,"amount_gross":300.00,"category":"office"},
+  {"doc_id":"inv-011","vendor":"Notion","invoice_date":"2024-08-12","amount_net":8.40,"vat_rate":19,"vat_amount":1.60,"amount_gross":10.00,"category":"software"},
+  {"doc_id":"inv-012","vendor":"Slack","invoice_date":"2024-09-12","amount_net":8.40,"vat_rate":19,"vat_amount":1.60,"amount_gross":10.00,"category":"software"}
+]

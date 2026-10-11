@@ -71,20 +71,18 @@ Desktop.ini
 # Project specific
 # ========================
 
-# Screenshots & recordings from the agent
+# --- Screenshots & recordings (agent output) ---
 screenshots/
 recordings/
-*.png
-*.jpg
-*.jpeg
-*.gif
 *.mp4
 *.webm
+# keep docs/ and app/web/static/ images
 !docs/**/*.png
 !docs/**/*.jpg
-!ui/**/assets/**
+!app/web/static/**/*.png
+!app/web/static/**/*.jpg
 
-# Local model weights / caches (can be huge)
+# --- Local model weights / caches ---
 models/
 *.bin
 *.safetensors
@@ -96,28 +94,57 @@ models/
 huggingface/
 ~/.cache/huggingface/
 
-# vLLM / Torch related
+# --- vLLM / Torch / experiment logs ---
 *.log
 logs/
 wandb/
 mlruns/
 .tensorboard/
 
-# Configs with secrets or local paths
+# --- Secrets & local configs ---
+.env.local
+.env.*.local
+.env.test
+.env.ci
 config/local.yaml
 config/secrets.yaml
 *.local.yaml
-.env.local
-.env.*.local
 
-# Demo data / client data (never commit real client data!)
-demos/real/
-data/clients/
-data/invoices/
-*.pdf
-!demos/sample/**/*.pdf
+# --- Demo / client data ---
+# NEVER commit real client data.
+data/clients/**
+data/inbox/**
+data/processed/**
+!data/inbox/.gitkeep
+!data/processed/.gitkeep
 
-# PyAutoGUI / automation temp
+# Law PDFs are big and licensed — keep them local.
+data/law/**
+!data/law/.gitkeep
+
+# Fixtures ARE committed (they're synthetic).
+!data/fixtures/**
+!data/fixtures/**/*.pdf
+!data/fixtures/**/*.csv
+!data/fixtures/**/*.json
+
+# Tax tips ARE committed (curated knowledge).
+!data/tax_tips/**
+!data/tax_tips/**/*.yaml
+
+# --- Local service data (if run outside docker) ---
+qdrant_storage/
+qdrant_data/
+postgres_data/
+pg_data/
+redis_data/
+celerybeat-schedule
+celerybeat-schedule.*
+*.sqlite
+*.sqlite3
+*.db
+
+# --- PyAutoGUI / automation temp ---
 pyautogui_failsafe/
 .temp/
 
@@ -137,7 +164,7 @@ ui/.turbo/
 .yarn/
 .pnpm-store/
 
-# Streamlit / Gradio
+# Streamlit / Gradio (not used, but harmless)
 .streamlit/
 .gradio/
 
@@ -177,5 +204,9 @@ coverage.xml
 .direnv/
 .pre-commit-config.yaml.bak
 
+# ========================
+# Project helper scripts
+# ========================
 export_tree.py
 project_tree.txt
+*.tree.txt

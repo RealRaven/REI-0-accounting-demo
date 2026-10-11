@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>REI-0 · Invoices</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <strong>REI-0</strong>
+    <nav>
+      <a href="/ui/chat">Chat</a>
+      <a href="/ui/invoices">Invoices</a>
+      <a href="/ui/hidden-costs">Hidden costs</a>
+      <a href="/ui/law">Law</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Invoices</h1>
+    <table id="tbl">
+      <thead>
+        <tr><th>Doc</th><th>Vendor</th><th>Date</th><th>Net</th><th>VAT</th><th>Gross</th><th>Category</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+  <script>
+    (async () => {
+      const r = await fetch('/api/v1/invoices');
+      const { items } = await r.json();
+      const tb = document.querySelector('#tbl tbody');
+      for (const inv of items) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${inv.doc_id || ''}</td>
+          <td>${inv.vendor || ''}</td>
+          <td>${inv.invoice_date || ''}</td>
+          <td>${inv.amount_net ?? ''}</td>
+          <td>${inv.vat_rate ?? ''}% (${inv.vat_amount ?? ''})</td>
+          <td>${inv.amount_gross ?? ''}</td>
+          <td>${inv.category || ''}</td>`;
+        tb.appendChild(tr);
+      }
+    })();
+  </script>
+</body>
+</html>

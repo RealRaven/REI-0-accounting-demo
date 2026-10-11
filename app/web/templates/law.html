@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>REI-0 · Law</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <strong>REI-0</strong>
+    <nav>
+      <a href="/ui/chat">Chat</a>
+      <a href="/ui/invoices">Invoices</a>
+      <a href="/ui/hidden-costs">Hidden costs</a>
+      <a href="/ui/law">Law</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Law search</h1>
+    <form id="f">
+      <input id="q" placeholder="§ 15 UStG Vorsteuer" size="40" />
+      <button>Search</button>
+    </form>
+    <div id="out"></div>
+  </main>
+  <script>
+    document.getElementById('f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = document.getElementById('q').value;
+      const r = await fetch('/api/v1/law/search?q=' + encodeURIComponent(q));
+      const { items } = await r.json();
+      const out = document.getElementById('out');
+      out.innerHTML = '';
+      for (const h of items) {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="k">${h.payload.para || ''} · ${h.payload.law || ''} p.${h.payload.page || 1}</div>
+          <div>${(h.payload.text || '').slice(0, 400)}…</div>
+          <div class="ev"><span class="chip">${h.payload.pdf_path || ''}</span></div>`;
+        out.appendChild(div);
+      }
+    });
+  </script>
+</body>
+</html>

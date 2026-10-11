@@ -1,0 +1,67 @@
+:root {
+  --bg: #0e0f12;
+  --fg: #e7e7ea;
+  --mut: #8b8d94;
+  --acc: #7c5cff;
+  --card: #16181d;
+  --line: #24262c;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--fg);
+}
+header {
+  display: flex; align-items: center; gap: 24px;
+  padding: 12px 20px; border-bottom: 1px solid var(--line);
+}
+header strong { letter-spacing: 0.5px; }
+nav a { color: var(--mut); margin-right: 14px; text-decoration: none; }
+nav a:hover { color: var(--fg); }
+
+main { padding: 20px; max-width: 960px; margin: 0 auto; }
+main.chat { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+
+.log { flex: 1; overflow-y: auto; padding: 12px 0; }
+.row { display: flex; margin: 8px 0; }
+.row.user { justify-content: flex-end; }
+.bubble {
+  padding: 10px 14px; border-radius: 12px; max-width: 78%;
+  background: var(--card); border: 1px solid var(--line);
+  white-space: pre-wrap; word-wrap: break-word;
+}
+.row.user .bubble { background: var(--acc); color: white; border-color: transparent; }
+.cites { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 12px; }
+.chip {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  background: #22242b; color: var(--mut); font-size: 12px;
+  border: 1px solid var(--line);
+}
+.composer { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.composer input {
+  flex: 1; padding: 12px 14px; border-radius: 10px;
+  background: var(--card); color: var(--fg);
+  border: 1px solid var(--line); outline: none;
+}
+.composer input:focus { border-color: var(--acc); }
+.composer button {
+  padding: 0 18px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--acc); color: white; font-weight: 600;
+}
+
+.cards { display: grid; gap: 14px; grid-template-columns: 1fr; }
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px;
+}
+.card .k { color: var(--acc); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+.card .amt { font-size: 22px; font-weight: 700; margin-top: 2px; }
+.card .vendor { color: var(--mut); }
+.card .sug { margin: 8px 0; }
+.card .conf { font-size: 12px; color: var(--mut); }
+.card .ev { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+th { color: var(--mut); font-weight: 500; font-size: 12px; text-transform: uppercase; }

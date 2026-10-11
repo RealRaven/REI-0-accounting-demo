@@ -1,0 +1,10 @@
+storage:
+  storage_path: /qdrant/storage
+  on_disk_payload: true
+
+service:
+  http_port: 6333
+  grpc_port: 6334
+  enable_cors: true
+
+log_level: INFO
