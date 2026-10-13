@@ -64,6 +64,8 @@ Everything runs **locally**. No OpenAI. No cloud. Just `vLLM` for the LLM, `Qdra
 Three commands. That's it.
 
 ```bash
+cp .env.example .env
+make install
 make up      # vllm + qdrant + postgres + redis + app + ui
 make seed    # index fixtures, law PDFs, tax tips
 make demo    # opens http://localhost:8000/ui/chat.html
