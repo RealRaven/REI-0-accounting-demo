@@ -2,6 +2,7 @@ import asyncio
 import csv
 import json
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -30,7 +31,11 @@ async def main() -> None:
         await q.upsert(
             collection_name=COLL_INVOICES,
             points=[
-                {"id": i["doc_id"], "vector": v, "payload": i}
+                {
+                    "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, str(i["doc_id"]))),
+                    "vector": v,
+                    "payload": i,
+                }
                 for i, v in zip(invoices, inv_vecs)
             ],
         )
@@ -51,7 +56,11 @@ async def main() -> None:
         await q.upsert(
             collection_name=COLL_BANK,
             points=[
-                {"id": r["tx_id"], "vector": v, "payload": r}
+                {
+                    "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, str(r["tx_id"]))),
+                    "vector": v,
+                    "payload": r,
+                }
                 for r, v in zip(bank_rows, bank_vecs)
             ],
         )

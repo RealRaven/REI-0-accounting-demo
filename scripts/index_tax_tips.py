@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -22,7 +23,15 @@ async def main() -> None:
     q = AsyncQdrantClient(url=s.qdrant_url, api_key=s.qdrant_api_key or None)
     await q.upsert(
         collection_name=COLL_TIPS,
-        points=[{"id": pid, "vector": v, "payload": p} for pid, v, p in points],
+        points=[
+            {
+                # Convert string slug into a valid, deterministic UUID for Qdrant
+                "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, str(pid))),
+                "vector": v,
+                "payload": p,
+            }
+            for pid, v, p in points
+        ],
     )
     await q.close()
     print(f"indexed {len(points)} tax tips.")
