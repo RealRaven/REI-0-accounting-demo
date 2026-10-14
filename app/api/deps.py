@@ -3,6 +3,7 @@ from typing import Annotated, AsyncIterator
 
 import httpx
 from fastapi import Depends
+from openai import AsyncOpenAI
 from qdrant_client import AsyncQdrantClient
 
 from app.config import Settings, get_settings
@@ -28,3 +29,14 @@ async def get_qdrant(settings: SettingsDep) -> AsyncIterator[AsyncQdrantClient]:
 
 
 QdrantDep = Annotated[AsyncQdrantClient, Depends(get_qdrant)]
+
+
+def get_llm(settings: SettingsDep) -> AsyncOpenAI:
+    """Return an OpenAI-compatible client configured for local vLLM."""
+    return AsyncOpenAI(
+        base_url=settings.vllm_base_url,
+        api_key=settings.vllm_api_key or "not-needed",
+    )
+
+
+LlmDep = Annotated[AsyncOpenAI, Depends(get_llm)]

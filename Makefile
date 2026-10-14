@@ -23,6 +23,7 @@ up: doctor
 	done
 	@curl -sf http://localhost:8001/v1/models >/dev/null 2>&1 \
 		|| { echo "vLLM did not come up — check: docker compose logs vllm"; exit 1; }
+	uvicorn app.main:app --reload --port 8000
 
 down:
 	docker compose down
@@ -35,7 +36,7 @@ doctor:
 	@python -c "import httpx, fastapi, qdrant_client, openai, rapidfuzz" 2>/dev/null \
 		|| { echo "python deps missing — run: make install"; exit 1; }
 	@echo "pre-flight ok"
-	
+    
 # ----------------------------------------------------------------------
 # Seeding
 # ----------------------------------------------------------------------
