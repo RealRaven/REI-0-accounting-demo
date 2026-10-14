@@ -14,14 +14,20 @@ async def dense_search(
     s = get_settings()
     q = AsyncQdrantClient(url=s.qdrant_url, api_key=s.qdrant_api_key or None)
     vec = await embed_one(query)
-    hits = await q.search(
+    
+    # Updated from q.search(...) to q.query_points(...)
+    response = await q.query_points(
         collection_name=collection,
-        query_vector=vec,
+        query=vec,          # Parameter changed from query_vector to query
         limit=k,
         query_filter=flt,
         with_payload=True,
     )
     await q.close()
+    
+    # Extract the points list from the response object
+    hits = response.points
+    
     return [
         {"id": str(h.id), "score": h.score, "payload": h.payload or {}}
         for h in hits
