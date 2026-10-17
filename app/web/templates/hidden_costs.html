@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>REI-0 · Hidden costs</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <strong>REI-0</strong>
+    <nav>
+      <a href="/ui/chat">Chat</a>
+      <a href="/ui/invoices">Invoices</a>
+      <a href="/ui/hidden-costs">Hidden costs</a>
+      <a href="/ui/law">Law</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Hidden costs</h1>
+    <div id="list" class="cards"></div>
+  </main>
+
+  <script>
+    async function load() {
+      const r = await fetch('/api/v1/hidden-costs');
+      const data = await r.json();
+      const list = document.getElementById('list');
+      if (!data.items.length) {
+        list.textContent = 'Nothing suspicious. 🎉';
+        return;
+      }
+      for (const f of data.items) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="k">${f.kind}</div>
+          <div class="amt">${f.amount.toFixed(2)} €</div>
+          <div class="vendor">${f.vendor || ''}</div>
+          <div class="sug">${f.suggestion}</div>
+          <div class="conf">confidence ${(f.confidence * 100).toFixed(0)}%</div>
+          <div class="ev">${(f.evidence || []).map(e => `<span class="chip">${e}</span>`).join('')}</div>
+        `;
+        list.appendChild(card);
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

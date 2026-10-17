@@ -1,0 +1,10 @@
+- id: reisekosten-bahn
+  branch: all
+  year: 2024
+  law_ref: "§ 9 EStG"
+  title: "Reisekosten Bahn"
+  deductibility: full
+  body: >
+    Bahnfahrten zu Geschäftsterminen sind in voller Höhe abzugsfähig.
+    Bei Übernachtung zusätzlich Verpflegungspauschalen (§ 9 Abs. 4a EStG):
+    28 € bei 24h Abwesenheit, 14 € bei An-/Abreise.

@@ -1,0 +1,22 @@
+- id: software-subscriptions
+  branch: IT
+  year: 2024
+  law_ref: "§ 4 Abs. 4 EStG"
+  deductibility: full
+  title: "Software-Abos als Betriebsausgabe"
+  body: >
+    Laufende Software-Abos (SaaS) sind als Betriebsausgabe in voller Höhe
+    abzugsfähig, sofern sie betrieblich veranlasst sind. Bei gemischter
+    Nutzung ist ein sachgerechter Anteil zu schätzen. Vorsteuer aus
+    Rechnungen mit ausgewiesener USt ist nach § 15 UStG abziehbar.
+
+- id: hosting-deduction
+  branch: IT
+  year: 2024
+  law_ref: "§ 4 Abs. 4 EStG; § 15 UStG"
+  title: "Hosting & Cloud"
+  deductibility: full
+  body: >
+    Server-, Cloud- und Hosting-Kosten sind Betriebsausgaben. Bei
+    AWS/GCP/Azure mit Reverse-Charge ist die Steuerschuldnerschaft nach
+    § 13b UStG zu beachten.

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>REI-0 · Chat</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <strong>REI-0</strong>
+    <nav>
+      <a href="/ui/chat">Chat</a>
+      <a href="/ui/invoices">Invoices</a>
+      <a href="/ui/hidden-costs">Hidden costs</a>
+      <a href="/ui/law">Law</a>
+    </nav>
+  </header>
+
+  <main class="chat">
+    <div id="log" class="log"></div>
+    <form id="form" class="composer">
+      <input id="q" placeholder="Ask your books anything…" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </main>
+
+  <script>
+    const log = document.getElementById('log');
+    const form = document.getElementById('form');
+    const q = document.getElementById('q');
+
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
+    }
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const message = q.value.trim();
+      if (!message) return;
+      q.value = '';
+      addUser(message);
+      const bubble = addBot();
+      await stream(message, bubble);
+    });
+
+    function addUser(text) {
+      const row = el('div', 'row user');
+      row.appendChild(el('div', 'bubble', text));
+      log.appendChild(row);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function addBot() {
+      const row = el('div', 'row bot');
+      const bubble = el('div', 'bubble');
+      const cites = el('div', 'cites');
+      row.appendChild(bubble);
+      row.appendChild(cites);
+      log.appendChild(row);
+      log.scrollTop = log.scrollHeight;
+      return { bubble, cites };
+    }
+
+    async function stream(message, ui) {
+      const res = await fetch('/api/v1/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf('\n\n')) !== -1) {
+          const frame = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          handleFrame(frame, ui);
+        }
+      }
+    }
+
+    function handleFrame(frame, ui) {
+      const lines = frame.split('\n');
+      let event = 'message';
+      let data = '';
+      for (const l of lines) {
+        if (l.startsWith('event:')) event = l.slice(6).trim();
+        else if (l.startsWith('data:')) data += l.slice(5).trim();
+      }
+      if (!data) return;
+      const parsed = JSON.parse(data);
+      if (event === 'token') {
+        ui.bubble.textContent += parsed;
+        log.scrollTop = log.scrollHeight;
+      } else if (event === 'citations') {
+        ui.cites.innerHTML = '';
+        for (const c of parsed) {
+          const chip = el('span', 'chip', c.cite);
+          chip.title = c.collection;
+          ui.cites.appendChild(chip);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

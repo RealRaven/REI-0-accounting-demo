@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>REI-0 · Law</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* Drag & Drop styles */
+    .drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--card);
+      margin-bottom: 24px;
+    }
+    .drop-zone.dragover {
+      border-color: var(--acc);
+      background: rgba(124, 92, 255, 0.1);
+    }
+    .drop-zone p { margin: 0; color: var(--mut); }
+    .drop-zone span { color: var(--acc); font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>REI-0</strong>
+    <nav>
+      <a href="/ui/chat">Chat</a>
+      <a href="/ui/invoices">Invoices</a>
+      <a href="/ui/hidden-costs">Hidden costs</a>
+      <a href="/ui/law">Law</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Law search</h1>
+    
+    <!-- Search Form -->
+    <form id="f" style="margin-bottom: 24px; display: flex; gap: 10px;">
+      <input id="q" placeholder="§ 15 UStG Vorsteuer" style="flex: 1; padding: 10px;" />
+      <button style="padding: 0 20px;">Search</button>
+    </form>
+
+    <!-- Drag & Drop Upload Zone -->
+    <div id="drop-zone" class="drop-zone">
+      <p><span>Click to upload</span> or drag and drop a Law PDF here</p>
+      <p style="font-size: 12px; margin-top: 8px;">(e.g., Swiss tax system.pdf)</p>
+      <input type="file" id="pdf-file" accept=".pdf" style="display: none;" />
+    </div>
+    <div id="upload-status" style="margin-bottom: 24px; font-size: 14px; color: var(--mut); text-align: center;"></div>
+
+    <!-- Results -->
+    <div id="out"></div>
+  </main>
+
+  <script>
+    // --- Drag & Drop Upload Logic ---
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('pdf-file');
+    const statusDiv = document.getElementById('upload-status');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault(); e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) handleUpload(files[0]);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) handleUpload(fileInput.files[0]);
+    });
+
+    async function handleUpload(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        statusDiv.innerHTML = '❌ Please upload a PDF file.';
+        statusDiv.style.color = '#f87171';
+        return;
+      }
+
+      statusDiv.innerHTML = `Extracting text from <strong>${file.name}</strong>...`;
+      statusDiv.style.color = 'var(--mut)';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const r = await fetch('/api/v1/law/upload', { method: 'POST', body: formData });
+        if (!r.ok) throw new Error((await r.json()).detail || 'Upload failed');
+        
+        const data = await r.json();
+        // Updated success message for Direct File RAG
+        statusDiv.innerHTML = `✅ Successfully extracted text from <strong>${data.filename}</strong> and saved to disk. You can now search it!`;
+        statusDiv.style.color = '#4ade80';
+        fileInput.value = '';
+      } catch (err) {
+        statusDiv.innerHTML = `❌ Error: ${err.message}`;
+        statusDiv.style.color = '#f87171';
+      }
+    }
+
+    // --- Search & AI Summary Logic ---
+    document.getElementById('f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = document.getElementById('q').value;
+      const out = document.getElementById('out');
+      
+      out.innerHTML = '<p style="color: var(--mut);">🔍 Searching local PDFs and generating AI summary...</p>';
+
+      try {
+        const r = await fetch('/api/v1/law/ask?q=' + encodeURIComponent(q));
+        const data = await r.json();
+        
+        out.innerHTML = '';
+        
+        // 1. Render the AI Summary
+        if (data.summary) {
+          const summaryBox = document.createElement('div');
+          summaryBox.className = 'card';
+          summaryBox.style.borderColor = 'var(--acc)';
+          summaryBox.style.marginBottom = '24px';
+          summaryBox.style.boxShadow = '0 0 15px rgba(124, 92, 255, 0.1)';
+          summaryBox.innerHTML = `
+            <div class="k" style="color: var(--acc); font-size: 14px;">✨ AI Summary</div>
+            <div style="margin-top: 8px; line-height: 1.6; font-size: 15px;">${data.summary.replace(/\n/g, '<br>')}</div>
+          `;
+          out.appendChild(summaryBox);
+        }
+        
+        // 2. Render Raw Sources
+        if (!data.items || data.items.length === 0) {
+          out.innerHTML += `<div class="card" style="text-align: center;"><div class="k">No matching text found in local PDFs</div></div>`;
+          return;
+        }
+
+        const sourcesTitle = document.createElement('h3');
+        sourcesTitle.textContent = '📄 Source Excerpts';
+        sourcesTitle.style.marginTop = '24px';
+        sourcesTitle.style.fontSize = '14px';
+        sourcesTitle.style.color = 'var(--mut)';
+        sourcesTitle.style.textTransform = 'uppercase';
+        out.appendChild(sourcesTitle);
+
+        for (const h of data.items) {
+          const div = document.createElement('div');
+          div.className = 'card';
+          
+          // Direct File RAG uses 'source' and 'score' instead of 'para' and 'page'
+          const sourceName = h.payload.source || 'Unknown File';
+          const score = h.payload.score ? h.payload.score.toFixed(2) : 'N/A';
+          
+          div.innerHTML = `
+            <div class="k">Source: ${sourceName} <span style="color:var(--mut); font-weight:normal; font-size:11px; margin-left:8px;">(Match: ${score})</span></div>
+            <div style="margin: 8px 0; font-size: 14px; color: #ccc;">${(h.payload.text || '').slice(0, 500)}…</div>
+          `;
+          out.appendChild(div);
+        }
+      } catch (err) {
+        out.innerHTML = `<p style="color: #f87171;">Error: ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
