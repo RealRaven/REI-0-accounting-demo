@@ -31,5 +31,5 @@ async def dense_search(
     return [
         {"id": str(h.id), "score": h.score, "payload": h.payload or {}}
         for h in hits
-        if h.score >= s.rag_min_score
+        if h.score >= 0.5
     ]

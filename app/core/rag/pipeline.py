@@ -13,18 +13,22 @@ ALL = ["invoices", "bank_tx", "law", "tax_tips", "documents"]
 async def answer_stream(question: str, collections: list[str] | None = None) -> AsyncIterator[dict]:
     collections = collections or ALL
     hits = await retrieve_multi(question, collections, k_each=8)
-    hits = rerank(hits, top_k=20)  # Increased from 12 to 20
+    hits = rerank(hits, top_k=20)
 
     context, chips = build_context(hits, max_chars=16000)
     context = mask_pii(context)
 
     yield {"type": "citations", "data": chips}
 
-    user_prompt = (
-        f"CONTEXT:\n{context}\n\n"
-        f"QUESTION: {question}\n\n"
-        "Answer with inline citations. Be concise. If the context includes relevant law paragraphs, summarize them."
-    )
+    # If no good matches were found, tell the LLM to just chat normally
+    if not context.strip():
+        user_prompt = f"QUESTION: {question}\n\n(Note: No relevant documents were found in the database for this query. Just respond naturally to the user.)"
+    else:
+        user_prompt = (
+            f"CONTEXT:\n{context}\n\n"
+            f"QUESTION: {question}\n\n"
+            "Answer with inline citations. Be concise. If the context includes relevant law paragraphs, summarize them."
+        )
 
     llm = VLLMClient()
     async for token in llm.stream(ACCOUNTANT_SYSTEM, user_prompt):
