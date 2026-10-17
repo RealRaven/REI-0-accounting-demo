@@ -30,8 +30,8 @@ services:
       --port 8001
       --runner pooling
       --pooler-config.task embed
-      --max-model-len 8192
-      --gpu-memory-utilization ${VLLM_EMBED_GPU_MEM_UTIL:-0.15}
+      --max-model-len 2048
+      --gpu-memory-utilization 0.10
     ports:
       - "8002:8001"
     volumes:

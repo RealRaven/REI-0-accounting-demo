@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pytesseract
-from PIL import Image
 from pdf2image import convert_from_path
+from pypdf import PdfReader
 
 from app.config import get_settings
 
@@ -10,14 +10,21 @@ from app.config import get_settings
 def ocr_pdf(path: str | Path) -> str:
     if not get_settings().ocr_enabled:
         return ""
+
     try:
-        images = convert_from_path(str(path), dpi=200)
+        num_pages = len(PdfReader(str(path)).pages)
     except Exception:
         return ""
+
     out = []
-    for img in images:
+    # Process ONE page at a time to prevent RAM exhaustion
+    for i in range(1, num_pages + 1):
         try:
-            out.append(pytesseract.image_to_string(img, lang="deu+eng"))
+            images = convert_from_path(str(path), dpi=200, first_page=i, last_page=i)
+            if images:
+                text = pytesseract.image_to_string(images[0], lang="deu+eng")
+                out.append(text)
         except Exception:
-            out.append("")
+            continue
+
     return "\n".join(out)

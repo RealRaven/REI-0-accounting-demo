@@ -10,26 +10,26 @@ async def dense_search(
     query: str,
     k: int = 8,
     flt: Filter | None = None,
+    min_score: float | None = None,
 ) -> list[dict]:
     s = get_settings()
     q = AsyncQdrantClient(url=s.qdrant_url, api_key=s.qdrant_api_key or None)
     vec = await embed_one(query)
     
-    # Updated from q.search(...) to q.query_points(...)
-    response = await q.query_points(
+    threshold = min_score if min_score is not None else s.rag_min_score
+    
+    # Use the new query_points API
+    result = await q.query_points(
         collection_name=collection,
-        query=vec,          # Parameter changed from query_vector to query
+        query=vec,
         limit=k,
         query_filter=flt,
         with_payload=True,
     )
     await q.close()
     
-    # Extract the points list from the response object
-    hits = response.points
-    
     return [
         {"id": str(h.id), "score": h.score, "payload": h.payload or {}}
-        for h in hits
-        if h.score >= 0.5
+        for h in result.points
+        if h.score >= threshold
     ]

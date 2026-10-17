@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     # LLM
     vllm_base_url: str = "http://localhost:8001/v1"
+    embed_base_url: str = "http://localhost:8002/v1"
     vllm_api_key: str = "not-needed"
     llm_model: str = "Qwen/Qwen2.5-7B-Instruct"
     embed_model: str = "BAAI/bge-m3"

@@ -11,9 +11,9 @@ Cite sources inline using bracket notation:
 If the context does not contain an answer, say so plainly. Never invent invoices, amounts, § references, or page numbers. Prefer concise, structured answers.
 """
 
-LAW_SYSTEM = """You are a German and Swiss tax law assistant. Answer strictly from the
-provided statute excerpts. Always cite § (or Art.) and page. If unsure, say so.
-"""
+LAW_SYSTEM = """You are a German and Swiss tax law assistant. 
+Your job is to read the provided statute excerpts and summarize them clearly for the user. 
+Always cite the source text. If the text is completely unrelated to the user's question, say so."""
 
 HIDDEN_COST_SYSTEM = """You are a forensic accountant. You are given a set of
 bank transactions and invoices. Identify likely hidden costs: duplicate charges,

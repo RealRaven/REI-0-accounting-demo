@@ -10,8 +10,14 @@ DEFAULT_WEIGHTS = {
 }
 
 
-async def retrieve_collection(collection: str, query: str, k: int = 8) -> list[dict]:
-    hits = await dense_search(collection, query, k=k)
+async def retrieve_collection(
+    collection: str, 
+    query: str, 
+    k: int = 8, 
+    min_score: float | None = None
+) -> list[dict]:
+    # We now pass min_score down to dense_search
+    hits = await dense_search(collection, query, k=k, min_score=min_score)
     for h in hits:
         h["collection"] = collection
         h["weighted_score"] = h["score"] * DEFAULT_WEIGHTS.get(collection, 1.0)

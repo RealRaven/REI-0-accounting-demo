@@ -56,7 +56,7 @@
   </main>
 
   <script>
-    // --- Drag & Drop Upload Logic (unchanged) ---
+    // --- Drag & Drop Upload Logic ---
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('pdf-file');
     const statusDiv = document.getElementById('upload-status');
@@ -93,7 +93,7 @@
         return;
       }
 
-      statusDiv.innerHTML = `Uploading and embedding <strong>${file.name}</strong>... (this may take a minute)`;
+      statusDiv.innerHTML = `Extracting text from <strong>${file.name}</strong>...`;
       statusDiv.style.color = 'var(--mut)';
 
       const formData = new FormData();
@@ -102,8 +102,10 @@
       try {
         const r = await fetch('/api/v1/law/upload', { method: 'POST', body: formData });
         if (!r.ok) throw new Error((await r.json()).detail || 'Upload failed');
+        
         const data = await r.json();
-        statusDiv.innerHTML = `✅ Successfully indexed ${data.chunks_indexed} chunks from <strong>${data.filename}</strong>.`;
+        // Updated success message for Direct File RAG
+        statusDiv.innerHTML = `✅ Successfully extracted text from <strong>${data.filename}</strong> and saved to disk. You can now search it!`;
         statusDiv.style.color = '#4ade80';
         fileInput.value = '';
       } catch (err) {
@@ -112,16 +114,15 @@
       }
     }
 
-    // --- Search & AI Summary Logic (UPDATED) ---
+    // --- Search & AI Summary Logic ---
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
       const q = document.getElementById('q').value;
       const out = document.getElementById('out');
       
-      out.innerHTML = '<p style="color: var(--mut);">🔍 Searching and generating AI summary...</p>';
+      out.innerHTML = '<p style="color: var(--mut);">🔍 Searching local PDFs and generating AI summary...</p>';
 
       try {
-        // Call the new /ask endpoint
         const r = await fetch('/api/v1/law/ask?q=' + encodeURIComponent(q));
         const data = await r.json();
         
@@ -143,7 +144,7 @@
         
         // 2. Render Raw Sources
         if (!data.items || data.items.length === 0) {
-          out.innerHTML += `<div class="card" style="text-align: center;"><div class="k">No raw sources found</div></div>`;
+          out.innerHTML += `<div class="card" style="text-align: center;"><div class="k">No matching text found in local PDFs</div></div>`;
           return;
         }
 
@@ -158,12 +159,15 @@
         for (const h of data.items) {
           const div = document.createElement('div');
           div.className = 'card';
-          const pdfName = h.payload.pdf_path ? h.payload.pdf_path.split('/').pop() : 'No PDF source';
+          
+          // Direct File RAG uses 'source' and 'score' instead of 'para' and 'page'
+          const sourceName = h.payload.source || 'Unknown File';
+          const score = h.payload.score ? h.payload.score.toFixed(2) : 'N/A';
           
           div.innerHTML = `
-            <div class="k">${h.payload.para || 'Unknown §'} · ${h.payload.law || ''} p.${h.payload.page || 1}</div>
-            <div style="margin: 8px 0; font-size: 14px; color: #ccc;">${(h.payload.text || '').slice(0, 400)}…</div>
-            <div class="ev"><span class="chip">${pdfName}</span></div>`;
+            <div class="k">Source: ${sourceName} <span style="color:var(--mut); font-weight:normal; font-size:11px; margin-left:8px;">(Match: ${score})</span></div>
+            <div style="margin: 8px 0; font-size: 14px; color: #ccc;">${(h.payload.text || '').slice(0, 500)}…</div>
+          `;
           out.appendChild(div);
         }
       } catch (err) {
