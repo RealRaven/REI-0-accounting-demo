@@ -4,6 +4,25 @@
   <meta charset="utf-8" />
   <title>REI-0 · Law</title>
   <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* Drag & Drop styles */
+    .drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--card);
+      margin-bottom: 24px;
+    }
+    .drop-zone.dragover {
+      border-color: var(--acc);
+      background: rgba(124, 92, 255, 0.1);
+    }
+    .drop-zone p { margin: 0; color: var(--mut); }
+    .drop-zone span { color: var(--acc); font-weight: bold; }
+  </style>
 </head>
 <body>
   <header>
@@ -17,28 +36,146 @@
   </header>
   <main>
     <h1>Law search</h1>
-    <form id="f">
-      <input id="q" placeholder="§ 15 UStG Vorsteuer" size="40" />
-      <button>Search</button>
+    
+    <!-- Search Form -->
+    <form id="f" style="margin-bottom: 24px; display: flex; gap: 10px;">
+      <input id="q" placeholder="§ 15 UStG Vorsteuer" style="flex: 1; padding: 10px;" />
+      <button style="padding: 0 20px;">Search</button>
     </form>
+
+    <!-- Drag & Drop Upload Zone -->
+    <div id="drop-zone" class="drop-zone">
+      <p><span>Click to upload</span> or drag and drop a Law PDF here</p>
+      <p style="font-size: 12px; margin-top: 8px;">(e.g., Swiss tax system.pdf)</p>
+      <input type="file" id="pdf-file" accept=".pdf" style="display: none;" />
+    </div>
+    <div id="upload-status" style="margin-bottom: 24px; font-size: 14px; color: var(--mut); text-align: center;"></div>
+
+    <!-- Results -->
     <div id="out"></div>
   </main>
+
   <script>
+    // --- Drag & Drop Upload Logic ---
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('pdf-file');
+    const statusDiv = document.getElementById('upload-status');
+
+    // Click to open file dialog
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Drag events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    // Handle drop
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleUpload(files[0]);
+      }
+    });
+
+    // Handle file input change
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        handleUpload(fileInput.files[0]);
+      }
+    });
+
+    async function handleUpload(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        statusDiv.innerHTML = '❌ Please upload a PDF file.';
+        statusDiv.style.color = '#f87171';
+        return;
+      }
+
+      statusDiv.innerHTML = `Uploading and embedding <strong>${file.name}</strong>... (this may take a minute)`;
+      statusDiv.style.color = 'var(--mut)';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const r = await fetch('/api/v1/law/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!r.ok) {
+          const err = await r.json();
+          throw new Error(err.detail || 'Upload failed');
+        }
+
+        const data = await r.json();
+        statusDiv.innerHTML = `✅ Successfully indexed ${data.chunks_indexed} chunks from <strong>${data.filename}</strong>.`;
+        statusDiv.style.color = '#4ade80';
+        fileInput.value = ''; // clear
+        
+        // Auto-search for something generic if nothing is in the search box
+        if (!document.getElementById('q').value) {
+            document.getElementById('q').value = "§";
+            document.getElementById('f').dispatchEvent(new Event('submit'));
+        }
+      } catch (err) {
+        statusDiv.innerHTML = `❌ Error: ${err.message}`;
+        statusDiv.style.color = '#f87171';
+      }
+    }
+
+    // --- Search Logic ---
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
       const q = document.getElementById('q').value;
-      const r = await fetch('/api/v1/law/search?q=' + encodeURIComponent(q));
-      const { items } = await r.json();
       const out = document.getElementById('out');
-      out.innerHTML = '';
-      for (const h of items) {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <div class="k">${h.payload.para || ''} · ${h.payload.law || ''} p.${h.payload.page || 1}</div>
-          <div>${(h.payload.text || '').slice(0, 400)}…</div>
-          <div class="ev"><span class="chip">${h.payload.pdf_path || ''}</span></div>`;
-        out.appendChild(div);
+      
+      out.innerHTML = '<p style="color: var(--mut);">Searching...</p>';
+
+      try {
+        const r = await fetch('/api/v1/law/search?q=' + encodeURIComponent(q));
+        const { items } = await r.json();
+        
+        out.innerHTML = '';
+        
+        if (!items || items.length === 0) {
+          out.innerHTML = `
+            <div class="card" style="text-align: center; padding: 40px;">
+              <div class="k" style="font-size: 16px; margin-bottom: 8px;">No results found</div>
+              <div style="color: var(--mut);">
+                The law database is empty or no match was found.<br>
+                Please upload a law PDF using the box above.
+              </div>
+            </div>`;
+          return;
+        }
+
+        for (const h of items) {
+          const div = document.createElement('div');
+          div.className = 'card';
+          
+          const pdfName = h.payload.pdf_path ? h.payload.pdf_path.split('/').pop() : 'No PDF source';
+          
+          div.innerHTML = `
+            <div class="k">${h.payload.para || 'Unknown §'} · ${h.payload.law || ''} p.${h.payload.page || 1}</div>
+            <div style="margin: 8px 0;">${(h.payload.text || '').slice(0, 400)}…</div>
+            <div class="ev"><span class="chip">${pdfName}</span></div>`;
+          out.appendChild(div);
+        }
+      } catch (err) {
+        out.innerHTML = `<p style="color: #f87171;">Error: ${err.message}</p>`;
       }
     });
   </script>

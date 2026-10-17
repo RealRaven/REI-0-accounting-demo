@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 
 from app.core.llm.embeddings import embed_texts
@@ -24,6 +25,8 @@ async def embed_law_chunks(chunks: list[dict]) -> list[tuple[str, list[float], d
     vecs = await embed_texts(texts)
     out = []
     for i, (c, v) in enumerate(zip(chunks, vecs)):
-        pid = f"{c['law']}-{c.get('para', 'x')}-{i}"
+        # Qdrant requires UUIDs or integers. We generate a deterministic UUID from the string.
+        raw_id = f"{c['law']}-{c.get('para', 'x')}-{i}"
+        pid = str(uuid.uuid5(uuid.NAMESPACE_DNS, raw_id))
         out.append((pid, v, c))
     return out

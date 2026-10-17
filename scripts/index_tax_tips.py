@@ -1,41 +1,33 @@
-import asyncio
-import sys
 import uuid
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import yaml
 
-from qdrant_client import AsyncQdrantClient
-
-from app.config import get_settings
-from app.core.vector.collections import COLL_TIPS
-from app.ingestion.tax_tips_loader import embed_tips, read_tips_dir
+from app.core.llm.embeddings import embed_texts
 
 
-async def main() -> None:
-    s = get_settings()
-    tips = read_tips_dir(s.tips_dir)
+def read_tips_dir(dir_path: str | Path) -> list[dict]:
+    out: list[dict] = []
+    for p in Path(dir_path).glob("*.yaml"):
+        try:
+            data = yaml.safe_load(p.read_text(encoding="utf-8")) or []
+        except Exception:
+            continue
+        for tip in data:
+            tip.setdefault("source_file", p.name)
+            out.append(tip)
+    return out
+
+
+async def embed_tips(tips: list[dict]) -> list[tuple[str, list[float], dict]]:
     if not tips:
-        print(f"no tips found in {s.tips_dir}")
-        return
-
-    points = await embed_tips(tips)
-    q = AsyncQdrantClient(url=s.qdrant_url, api_key=s.qdrant_api_key or None)
-    await q.upsert(
-        collection_name=COLL_TIPS,
-        points=[
-            {
-                # Convert string slug into a valid, deterministic UUID for Qdrant
-                "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, str(pid))),
-                "vector": v,
-                "payload": p,
-            }
-            for pid, v, p in points
-        ],
-    )
-    await q.close()
-    print(f"indexed {len(points)} tax tips.")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+        return []
+    texts = [f"{t.get('title', '')}. {t.get('body', '')}" for t in tips]
+    vecs = await embed_texts(texts)
+    
+    out = []
+    for i, (t, v) in enumerate(zip(tips, vecs)):
+        raw_id = t.get("id", f"tip-{i}")
+        pid = str(uuid.uuid5(uuid.NAMESPACE_DNS, raw_id))
+        out.append((pid, v, t))
+    return out
