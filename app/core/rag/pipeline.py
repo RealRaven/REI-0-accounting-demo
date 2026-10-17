@@ -22,12 +22,12 @@ async def answer_stream(question: str, collections: list[str] | None = None) -> 
 
     # If no good matches were found, tell the LLM to just chat normally
     if not context.strip():
-        user_prompt = f"QUESTION: {question}\n\n(Note: No relevant documents were found in the database for this query. Just respond naturally to the user.)"
+        user_prompt = f"QUESTION: {question}\n\n(Note: No relevant documents were found in the database for this query. Just respond naturally to the user in English.)"
     else:
         user_prompt = (
             f"CONTEXT:\n{context}\n\n"
             f"QUESTION: {question}\n\n"
-            "Answer with inline citations. Be concise. If the context includes relevant law paragraphs, summarize them."
+            "Answer in English with inline citations. Be concise. If the context includes relevant law paragraphs, summarize them."
         )
 
     llm = VLLMClient()

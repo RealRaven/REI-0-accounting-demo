@@ -14,9 +14,9 @@ freeze:
 # Lifecycle
 # ----------------------------------------------------------------------
 up: doctor
-	docker compose up -d vllm vllm-embed qdrant postgres redis
+	docker compose up -d vllm qdrant postgres redis
 	@echo "waiting for vLLM to finish loading (first run downloads the model)..."
-	@for i in $$(seq 1 300); do \
+	@for i in $$(seq 1 600); do \
 		curl -sf http://localhost:8001/v1/models >/dev/null 2>&1 && { echo "  vLLM ready"; break; }; \
 		[ $$((i % 20)) -eq 0 ] && echo "  ...$${i}s"; \
 		sleep 1; \

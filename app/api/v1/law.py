@@ -81,7 +81,8 @@ async def ask_law(q: str = Query(..., min_length=2), k: int = 5):
         f"--- END OF PDF TEXT ---\n\n"
         f"Please read the text above and summarize what it says about '{q}'. "
         "Explain it simply for a business owner. "
-        "Do NOT use outside knowledge. Only summarize what is in the provided text."
+        "Do NOT use outside knowledge. Only summarize what is in the provided text. "
+        "You MUST reply in English."
     )
 
     llm = VLLMClient()
