@@ -14,7 +14,7 @@ def format_citation(hit: dict) -> str:
     return f"[{coll}#{hit['id']}]"
 
 
-def build_context(hits: list[dict], max_chars: int = 6000) -> tuple[str, list[dict]]:
+def build_context(hits: list[dict], max_chars: int = 16000) -> tuple[str, list[dict]]:
     """Build a context block + a list of citation chips for the UI."""
     parts: list[str] = []
     chips: list[dict] = []

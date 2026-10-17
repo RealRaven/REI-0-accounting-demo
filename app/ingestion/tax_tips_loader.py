@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 
 import yaml
@@ -23,7 +24,11 @@ async def embed_tips(tips: list[dict]) -> list[tuple[str, list[float], dict]]:
         return []
     texts = [f"{t.get('title', '')}. {t.get('body', '')}" for t in tips]
     vecs = await embed_texts(texts)
-    return [
-        (t.get("id", f"tip-{i}"), v, t)
-        for i, (t, v) in enumerate(zip(tips, vecs))
-    ]
+    
+    out = []
+    for i, (t, v) in enumerate(zip(tips, vecs)):
+        raw_id = t.get("id", f"tip-{i}")
+        # Qdrant requires UUIDs, so we hash the raw string ID into a UUID
+        pid = str(uuid.uuid5(uuid.NAMESPACE_DNS, raw_id))
+        out.append((pid, v, t))
+    return out

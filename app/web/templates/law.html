@@ -56,44 +56,34 @@
   </main>
 
   <script>
-    // --- Drag & Drop Upload Logic ---
+    // --- Drag & Drop Upload Logic (unchanged) ---
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('pdf-file');
     const statusDiv = document.getElementById('upload-status');
 
-    // Click to open file dialog
     dropZone.addEventListener('click', () => fileInput.click());
 
-    // Drag events
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         dropZone.classList.add('dragover');
       }, false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         dropZone.classList.remove('dragover');
       }, false);
     });
 
-    // Handle drop
     dropZone.addEventListener('drop', (e) => {
       const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        handleUpload(files[0]);
-      }
+      if (files.length > 0) handleUpload(files[0]);
     });
 
-    // Handle file input change
     fileInput.addEventListener('change', () => {
-      if (fileInput.files.length > 0) {
-        handleUpload(fileInput.files[0]);
-      }
+      if (fileInput.files.length > 0) handleUpload(fileInput.files[0]);
     });
 
     async function handleUpload(file) {
@@ -110,67 +100,69 @@
       formData.append('file', file);
 
       try {
-        const r = await fetch('/api/v1/law/upload', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (!r.ok) {
-          const err = await r.json();
-          throw new Error(err.detail || 'Upload failed');
-        }
-
+        const r = await fetch('/api/v1/law/upload', { method: 'POST', body: formData });
+        if (!r.ok) throw new Error((await r.json()).detail || 'Upload failed');
         const data = await r.json();
         statusDiv.innerHTML = `✅ Successfully indexed ${data.chunks_indexed} chunks from <strong>${data.filename}</strong>.`;
         statusDiv.style.color = '#4ade80';
-        fileInput.value = ''; // clear
-        
-        // Auto-search for something generic if nothing is in the search box
-        if (!document.getElementById('q').value) {
-            document.getElementById('q').value = "§";
-            document.getElementById('f').dispatchEvent(new Event('submit'));
-        }
+        fileInput.value = '';
       } catch (err) {
         statusDiv.innerHTML = `❌ Error: ${err.message}`;
         statusDiv.style.color = '#f87171';
       }
     }
 
-    // --- Search Logic ---
+    // --- Search & AI Summary Logic (UPDATED) ---
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
       const q = document.getElementById('q').value;
       const out = document.getElementById('out');
       
-      out.innerHTML = '<p style="color: var(--mut);">Searching...</p>';
+      out.innerHTML = '<p style="color: var(--mut);">🔍 Searching and generating AI summary...</p>';
 
       try {
-        const r = await fetch('/api/v1/law/search?q=' + encodeURIComponent(q));
-        const { items } = await r.json();
+        // Call the new /ask endpoint
+        const r = await fetch('/api/v1/law/ask?q=' + encodeURIComponent(q));
+        const data = await r.json();
         
         out.innerHTML = '';
         
-        if (!items || items.length === 0) {
-          out.innerHTML = `
-            <div class="card" style="text-align: center; padding: 40px;">
-              <div class="k" style="font-size: 16px; margin-bottom: 8px;">No results found</div>
-              <div style="color: var(--mut);">
-                The law database is empty or no match was found.<br>
-                Please upload a law PDF using the box above.
-              </div>
-            </div>`;
+        // 1. Render the AI Summary
+        if (data.summary) {
+          const summaryBox = document.createElement('div');
+          summaryBox.className = 'card';
+          summaryBox.style.borderColor = 'var(--acc)';
+          summaryBox.style.marginBottom = '24px';
+          summaryBox.style.boxShadow = '0 0 15px rgba(124, 92, 255, 0.1)';
+          summaryBox.innerHTML = `
+            <div class="k" style="color: var(--acc); font-size: 14px;">✨ AI Summary</div>
+            <div style="margin-top: 8px; line-height: 1.6; font-size: 15px;">${data.summary.replace(/\n/g, '<br>')}</div>
+          `;
+          out.appendChild(summaryBox);
+        }
+        
+        // 2. Render Raw Sources
+        if (!data.items || data.items.length === 0) {
+          out.innerHTML += `<div class="card" style="text-align: center;"><div class="k">No raw sources found</div></div>`;
           return;
         }
 
-        for (const h of items) {
+        const sourcesTitle = document.createElement('h3');
+        sourcesTitle.textContent = '📄 Source Excerpts';
+        sourcesTitle.style.marginTop = '24px';
+        sourcesTitle.style.fontSize = '14px';
+        sourcesTitle.style.color = 'var(--mut)';
+        sourcesTitle.style.textTransform = 'uppercase';
+        out.appendChild(sourcesTitle);
+
+        for (const h of data.items) {
           const div = document.createElement('div');
           div.className = 'card';
-          
           const pdfName = h.payload.pdf_path ? h.payload.pdf_path.split('/').pop() : 'No PDF source';
           
           div.innerHTML = `
             <div class="k">${h.payload.para || 'Unknown §'} · ${h.payload.law || ''} p.${h.payload.page || 1}</div>
-            <div style="margin: 8px 0;">${(h.payload.text || '').slice(0, 400)}…</div>
+            <div style="margin: 8px 0; font-size: 14px; color: #ccc;">${(h.payload.text || '').slice(0, 400)}…</div>
             <div class="ev"><span class="chip">${pdfName}</span></div>`;
           out.appendChild(div);
         }
