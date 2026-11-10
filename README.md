@@ -88,6 +88,11 @@ First run pulls the model (~15 GB). Later starts are fast.
 ```bash
 cp .env.example .env
 docker compose up -d vllm qdrant postgres redis
+
+# Python dependencies — constraints.txt is required.
+# Without it, pip's resolver loops on celery/kombu/redis and pymupdf/pymupdf4llm.
+pip install -r requirements.txt -c constraints.txt
+
 python scripts/seed_qdrant.py
 python scripts/index_tax_tips.py
 python scripts/index_fixtures.py

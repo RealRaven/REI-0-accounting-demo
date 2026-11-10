@@ -1,0 +1,4 @@
+# constraints.txt
+torch==2.15.0
+transformers==5.22.2
+grpcio==1.85.1
